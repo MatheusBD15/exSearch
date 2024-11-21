@@ -1,9 +1,12 @@
-defmodule ExSearch.Crawler do
+defmodule ExSearch.Crawler.Services do
   @moduledoc """
-  The Crawler context.
+  Crawler services
   """
 
-  alias ExSearch.Crawler.Services
+  import Ecto.Query, warn: false
+  alias ElixirLS.LanguageServer.Providers.Completion.Reducers.Bitstring
+  alias ExSearch.Repo
+
   alias ExSearch.Crawler.Url
 
   @doc """
@@ -16,7 +19,7 @@ defmodule ExSearch.Crawler do
 
   """
   def list_urls do
-    Services.list_urls()
+    Repo.all(Url)
   end
 
   @doc """
@@ -33,9 +36,7 @@ defmodule ExSearch.Crawler do
       ** (Ecto.NoResultsError)
 
   """
-  def get_url!(id) do
-    Services.get_url!(id)
-  end
+  def get_url!(id), do: Repo.get!(Url, id)
 
   @doc """
   Creates a url.
@@ -49,8 +50,10 @@ defmodule ExSearch.Crawler do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_url(url) do
-    Services.create_url(url)
+  def create_url(attrs \\ %{}) do
+    %Url{}
+    |> Url.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -66,7 +69,9 @@ defmodule ExSearch.Crawler do
 
   """
   def update_url(%Url{} = url, attrs) do
-    Services.update_url(url, attrs)
+    url
+    |> Url.changeset(attrs)
+    |> Repo.update()
   end
 
   @doc """
@@ -82,7 +87,7 @@ defmodule ExSearch.Crawler do
 
   """
   def delete_url(%Url{} = url) do
-    Services.delete_url(url)
+    Repo.delete(url)
   end
 
   @doc """
@@ -95,6 +100,35 @@ defmodule ExSearch.Crawler do
 
   """
   def change_url(%Url{} = url, attrs \\ %{}) do
-    Services.change_url(url, attrs)
+    Url.changeset(url, attrs)
+  end
+
+  def crawl_all_urls() do
+    list_urls()
+    |> Enum.each(fn url ->
+      Task.Supervisor.async_nolink(ExSearch.CrawlerSupervisor, fn -> crawl_url(url.url) end)
+    end)
+  end
+
+  def crawl_url(url) do
+    result_html = Req.get!(url).body
+
+    {:ok, document} = Floki.parse_document(result_html)
+    anchors = Floki.find(document, "a")
+
+    new_paths =
+      Enum.map(anchors, fn anchor -> Enum.at(Floki.attribute(anchor, "href"), 0) end)
+
+    new_urls =
+      new_paths
+      |> Enum.filter(fn path -> not is_nil(path) end)
+      |> Enum.map(fn path ->
+        case String.contains?(path, "https://") do
+          true -> path
+          false -> url <> String.slice(path, 1..-1//-1)
+        end
+      end)
+
+    IO.inspect(new_urls)
   end
 end

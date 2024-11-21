@@ -17,7 +17,10 @@ defmodule ExSearch.Application do
       # Start a worker by calling: ExSearch.Worker.start_link(arg)
       # {ExSearch.Worker, arg},
       # Start to serve requests, typically the last entry
-      ExSearchWeb.Endpoint
+      ExSearchWeb.Endpoint,
+      {Task.Supervisor, name: ExSearch.CrawlerSupervisor},
+      # crawler worker
+      {ExSearch.Crawler.Worker, :none}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
