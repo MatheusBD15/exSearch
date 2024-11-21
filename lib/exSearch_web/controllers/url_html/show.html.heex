@@ -1,0 +1,15 @@
+<.header>
+  Url <%= @url.id %>
+  <:subtitle>This is a url record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/urls/#{@url}/edit"}>
+      <.button>Edit url</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Url"><%= @url.url %></:item>
+</.list>
+
+<.back navigate={~p"/urls"}>Back to urls</.back>
