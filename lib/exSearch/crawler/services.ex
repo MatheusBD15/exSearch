@@ -4,10 +4,10 @@ defmodule ExSearch.Crawler.Services do
   """
 
   import Ecto.Query, warn: false
-  alias ElixirLS.LanguageServer.Providers.Completion.Reducers.Bitstring
   alias ExSearch.Repo
 
   alias ExSearch.Crawler.Url
+  alias ExSearch.Crawler.Page
 
   @doc """
   Returns the list of urls.
@@ -103,18 +103,31 @@ defmodule ExSearch.Crawler.Services do
     Url.changeset(url, attrs)
   end
 
-  def crawl_all_urls() do
-    list_urls()
-    |> Enum.each(fn url ->
-      Task.Supervisor.async_nolink(ExSearch.CrawlerSupervisor, fn -> crawl_url(url.url) end)
+  def create_page(attrs) do
+    %Page{}
+    |> Page.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  defp crawl_urls(url_list) do
+    Enum.each(url_list, fn url ->
+      Task.Supervisor.async_nolink(ExSearch.CrawlerSupervisor, fn -> crawl_url(url) end)
     end)
   end
 
-  def crawl_url(url) do
+  def crawl_all_urls() do
+    list_urls()
+    |> Enum.map(fn url -> url.url end)
+    |> crawl_urls()
+  end
+
+  defp crawl_url(url) do
     result_html = Req.get!(url).body
 
     {:ok, document} = Floki.parse_document(result_html)
     anchors = Floki.find(document, "a")
+
+    title = document |> Floki.find("title") |> Floki.text()
 
     new_paths =
       Enum.map(anchors, fn anchor -> Enum.at(Floki.attribute(anchor, "href"), 0) end)
@@ -125,10 +138,13 @@ defmodule ExSearch.Crawler.Services do
       |> Enum.map(fn path ->
         case String.contains?(path, "https://") do
           true -> path
-          false -> url <> String.slice(path, 1..-1//-1)
+          false -> url <> String.slice(path, 1..-1//1)
         end
       end)
+      |> Enum.uniq()
 
-    IO.inspect(new_urls)
+    create_page(%{title: title, url: url, html: result_html})
+
+    crawl_urls(new_urls)
   end
 end
