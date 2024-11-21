@@ -111,7 +111,10 @@ defmodule ExSearch.Crawler.Services do
 
   defp crawl_urls(url_list) do
     Enum.each(url_list, fn url ->
-      Task.Supervisor.async_nolink(ExSearch.CrawlerSupervisor, fn -> crawl_url(url) end)
+      Task.Supervisor.async_nolink(
+        {:via, PartitionSupervisor, {ExSearch.CrawlerSupervisor, self()}},
+        fn -> crawl_url(url) end
+      )
     end)
   end
 

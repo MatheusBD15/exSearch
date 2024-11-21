@@ -18,7 +18,7 @@ defmodule ExSearch.Application do
       # {ExSearch.Worker, arg},
       # Start to serve requests, typically the last entry
       ExSearchWeb.Endpoint,
-      {Task.Supervisor, name: ExSearch.CrawlerSupervisor},
+      {PartitionSupervisor, child_spec: Task.Supervisor, name: ExSearch.CrawlerSupervisor},
       # crawler worker
       {ExSearch.Crawler.Worker, :none}
     ]

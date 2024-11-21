@@ -60,7 +60,8 @@ defmodule ExSearch.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:req, "~> 0.5.0"}
+      {:req, "~> 0.5.0"},
+      {:html5ever, "~> 0.15.0"}
     ]
   end
 
