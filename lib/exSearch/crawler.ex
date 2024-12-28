@@ -1,100 +1,30 @@
 defmodule ExSearch.Crawler do
-  @moduledoc """
-  The Crawler context.
-  """
+  require Logger
+  alias ExSearch.PageProducer
 
-  alias ExSearch.Crawler.Services
-  alias ExSearch.Crawler.Url
+  def work(url) do
+    result_html = Req.get!(url).body
 
-  @doc """
-  Returns the list of urls.
+    {:ok, document} = Floki.parse_document(result_html)
+    anchors = Floki.find(document, "a")
 
-  ## Examples
+    title = document |> Floki.find("title") |> Floki.text()
+    Logger.info("Scraped page with title #{title}")
 
-      iex> list_urls()
-      [%Url{}, ...]
+    new_paths =
+      Enum.map(anchors, fn anchor -> Enum.at(Floki.attribute(anchor, "href"), 0) end)
 
-  """
-  def list_urls do
-    Services.list_urls()
-  end
+    new_urls =
+      new_paths
+      |> Enum.filter(fn path -> not is_nil(path) end)
+      |> Enum.map(fn path ->
+        case String.contains?(path, "https://") do
+          true -> path
+          false -> url <> String.slice(path, 1..-1//1)
+        end
+      end)
+      |> Enum.uniq()
 
-  @doc """
-  Gets a single url.
-
-  Raises `Ecto.NoResultsError` if the Url does not exist.
-
-  ## Examples
-
-      iex> get_url!(123)
-      %Url{}
-
-      iex> get_url!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_url!(id) do
-    Services.get_url!(id)
-  end
-
-  @doc """
-  Creates a url.
-
-  ## Examples
-
-      iex> create_url(%{field: value})
-      {:ok, %Url{}}
-
-      iex> create_url(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_url(url) do
-    Services.create_url(url)
-  end
-
-  @doc """
-  Updates a url.
-
-  ## Examples
-
-      iex> update_url(url, %{field: new_value})
-      {:ok, %Url{}}
-
-      iex> update_url(url, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_url(%Url{} = url, attrs) do
-    Services.update_url(url, attrs)
-  end
-
-  @doc """
-  Deletes a url.
-
-  ## Examples
-
-      iex> delete_url(url)
-      {:ok, %Url{}}
-
-      iex> delete_url(url)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_url(%Url{} = url) do
-    Services.delete_url(url)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking url changes.
-
-  ## Examples
-
-      iex> change_url(url)
-      %Ecto.Changeset{data: %Url{}}
-
-  """
-  def change_url(%Url{} = url, attrs \\ %{}) do
-    Services.change_url(url, attrs)
+    PageProducer.scrape_urls(new_urls)
   end
 end

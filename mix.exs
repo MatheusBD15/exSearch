@@ -61,7 +61,8 @@ defmodule ExSearch.MixProject do
       {:bandit, "~> 1.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:req, "~> 0.5.0"},
-      {:html5ever, "~> 0.15.0"}
+      {:html5ever, "~> 0.15.0"},
+      {:gen_stage, "~> 1.2.1"}
     ]
   end
 

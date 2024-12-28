@@ -16,9 +16,6 @@ defmodule ExSearchWeb.Router do
 
   scope "/", ExSearchWeb do
     pipe_through :browser
-
-    get "/", PageController, :home
-    resources "/urls", UrlController
   end
 
   # Other scopes may use custom stacks.
