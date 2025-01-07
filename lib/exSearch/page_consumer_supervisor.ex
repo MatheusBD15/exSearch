@@ -9,6 +9,7 @@ defmodule ExSearch.PageConsumerSupervisor do
   def init(:ok) do
     Logger.info("PageConsumerSupervisor init")
 
+    # start the actual page consumer as children
     children = [
       %{
         id: ExSearch.PageConsumer,
@@ -17,6 +18,7 @@ defmodule ExSearch.PageConsumerSupervisor do
       }
     ]
 
+    # subscribe to the page producer
     opts = [
       strategy: :one_for_one,
       subscribe_to: [
