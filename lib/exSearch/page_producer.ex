@@ -20,9 +20,8 @@ defmodule ExSearch.PageProducer do
   end
 
   # handle_demand is invoked when the consumer asks for events
-  def handle_demand(num_pages, state) do
-    Logger.info("Received demand for #{num_pages} urls")
-
+  def handle_demand(_demand, state) do
+    # start with an empty state, as we won´t be using this function to handle demand
     {:noreply, [], state}
   end
 
