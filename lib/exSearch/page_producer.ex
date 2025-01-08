@@ -2,6 +2,8 @@ defmodule ExSearch.PageProducer do
   use GenStage
   require Logger
 
+  # this url can be anything at all
+  # we are starting with the minecraft wiki
   @initial_url "https://minecraft.wiki/"
 
   def start_link(_args) do
@@ -10,20 +12,23 @@ defmodule ExSearch.PageProducer do
   end
 
   def init(initial_state) do
-    Logger.info("PageProducer init")
-
     # kickstart the search with an initial url
     __MODULE__.scrape_urls([@initial_url])
+
+    # specify that the stage is a producer
     {:producer, initial_state}
   end
 
-  def handle_demand(demand, state) do
-    Logger.info("Received demand for #{demand} pages")
-    events = []
-    {:noreply, events, state}
+  # handle_demand is invoked when the consumer asks for events
+  def handle_demand(num_pages, state) do
+    Logger.info("Received demand for #{num_pages} urls")
+
+    {:noreply, [], state}
   end
 
-  def scrape_urls(urls) when is_list(urls) do
+  # this function will allow external functions to call the producer and issue
+  # requests for urls to be crawled
+  def scrape_urls(urls) do
     GenStage.cast(__MODULE__, {:urls, urls})
   end
 

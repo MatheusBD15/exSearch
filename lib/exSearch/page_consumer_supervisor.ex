@@ -7,8 +7,6 @@ defmodule ExSearch.PageConsumerSupervisor do
   end
 
   def init(:ok) do
-    Logger.info("PageConsumerSupervisor init")
-
     # start the actual page consumer as children
     children = [
       %{
@@ -19,6 +17,8 @@ defmodule ExSearch.PageConsumerSupervisor do
     ]
 
     # subscribe to the page producer
+    # max_demand can be used to limit concurrent consumer processes
+    # here we are configuring only 2 concurrent processes
     opts = [
       strategy: :one_for_one,
       subscribe_to: [
