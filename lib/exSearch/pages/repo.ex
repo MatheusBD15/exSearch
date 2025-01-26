@@ -1,5 +1,7 @@
 defmodule ExSearch.Pages.Repo do
-  alias ExSearch.Pages.Page
+  @moduledoc """
+  Pages Repo genServer, stores pages in a Map, indexed by url
+  """
   require Logger
 
   use GenServer
@@ -15,9 +17,15 @@ defmodule ExSearch.Pages.Repo do
   end
 
   @impl true
-  def handle_cast({:insert_page, %Page{url: url} = page}, state) do
+  def handle_cast({:insert_page, %{url: url} = page}, state) do
     Logger.info("Pages.Repo inserting page with url #{url}")
     {:noreply, Map.put(state, url, page)}
+  end
+
+  @impl true
+  def handle_cast({:update_all_pages, new_state}, _old_state) do
+    Logger.info("Updating all pages")
+    {:noreply, new_state}
   end
 
   @impl true
@@ -28,6 +36,11 @@ defmodule ExSearch.Pages.Repo do
   @impl true
   def handle_call(:get_total, _from, state) do
     {:reply, length(Map.keys(state)), state}
+  end
+
+  @impl true
+  def handle_call(:get_all_pages, _from, state) do
+    {:reply, Map.values(state), state}
   end
 
   @impl true
@@ -50,11 +63,19 @@ defmodule ExSearch.Pages.Repo do
     GenServer.call(__MODULE__, {:fetch_by_search_string, search})
   end
 
-  def insert_page(%Page{} = page) do
+  def insert_page(page) do
     GenServer.cast(__MODULE__, {:insert_page, page})
+  end
+
+  def update_all_pages(pages) do
+    GenServer.cast(__MODULE__, {:update_all_pages, pages})
   end
 
   def get_total() do
     GenServer.call(__MODULE__, :get_total)
+  end
+
+  def get_all_pages() do
+    GenServer.call(__MODULE__, :get_all_pages)
   end
 end

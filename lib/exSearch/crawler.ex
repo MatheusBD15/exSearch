@@ -47,6 +47,7 @@ defmodule ExSearch.Crawler do
       rank: 0.5
     }
 
+    # insert page in repo
     Page.insert_page(page_to_insert)
 
     PageProducer.scrape_urls(new_urls)
