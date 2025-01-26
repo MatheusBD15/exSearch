@@ -1,6 +1,8 @@
 defmodule ExSearch.Crawler do
   require Logger
   alias ExSearch.PageProducer
+  alias ExSearch.Page
+  alias ExSearch.Pages.Page, as: PageStruct
 
   def work(url) do
     # download the html
@@ -14,7 +16,8 @@ defmodule ExSearch.Crawler do
 
     # get the document title
     title = document |> Floki.find("title") |> Floki.text()
-    Logger.info("Scraped page with title #{title}")
+
+    # Logger.info("Scraped page with title #{title}")
 
     # get the href of all anchors
     all_hrefs =
@@ -34,6 +37,17 @@ defmodule ExSearch.Crawler do
       end)
       # remove duplicates
       |> Enum.uniq()
+
+    page_to_insert = %PageStruct{
+      url: url,
+      content: result_html,
+      title: title,
+      forward_links: new_urls,
+      backlinks: [],
+      rank: 0.5
+    }
+
+    Page.insert_page(page_to_insert)
 
     PageProducer.scrape_urls(new_urls)
   end

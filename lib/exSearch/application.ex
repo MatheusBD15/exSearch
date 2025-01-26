@@ -18,6 +18,7 @@ defmodule ExSearch.Application do
       # {ExSearch.Worker, arg},
       # Start to serve requests, typically the last entry
       ExSearchWeb.Endpoint,
+      {ExSearch.Pages.Repo, name: ExSearch.Pages.Repo},
       ExSearch.PageProducer,
       ExSearch.PageConsumerSupervisor
       # {PartitionSupervisor, child_spec: Task.Supervisor, name: ExSearch.CrawlerSupervisor},

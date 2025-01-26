@@ -22,7 +22,7 @@ defmodule ExSearch.PageConsumerSupervisor do
     opts = [
       strategy: :one_for_one,
       subscribe_to: [
-        {ExSearch.PageProducer, max_demand: 2}
+        {ExSearch.PageProducer, max_demand: 1}
       ]
     ]
 
