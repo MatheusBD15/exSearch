@@ -13,4 +13,11 @@ defmodule ExSearch.Page do
   def insert_page(page) do
     Repo.insert_page(page)
   end
+
+  def get_total_pages() do
+    case Repo.get_total() do
+      {:reply, total} -> total
+      error -> error
+    end
+  end
 end

@@ -26,6 +26,11 @@ defmodule ExSearch.Pages.Repo do
   end
 
   @impl true
+  def handle_call(:get_total, _from, state) do
+    {:reply, length(Map.keys(state)), state}
+  end
+
+  @impl true
   def handle_call({:fetch_by_search_string, search}, _from, state) do
     sorted_result =
       state
@@ -47,5 +52,9 @@ defmodule ExSearch.Pages.Repo do
 
   def insert_page(%Page{} = page) do
     GenServer.cast(__MODULE__, {:insert_page, page})
+  end
+
+  def get_total() do
+    GenServer.call(__MODULE__, :get_total)
   end
 end
